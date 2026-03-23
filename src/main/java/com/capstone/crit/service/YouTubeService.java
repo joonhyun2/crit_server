@@ -15,6 +15,7 @@ public class YouTubeService {
 
     private final RestTemplate restTemplate;
     private final VideoScoreService videoScoreService;
+    private final BedrockService bedrockService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${youtube.api.key}")
@@ -48,7 +49,7 @@ public class YouTubeService {
 
             long subscribers = getSubscriberCount(channelId);
 
-            return videoScoreService.calculate(VideoAnalysisResponse.builder()
+            VideoAnalysisResponse scored = videoScoreService.calculate(VideoAnalysisResponse.builder()
                     .videoId(videoId)
                     .title(snippet.path("title").asText())
                     .viewCount(views)
@@ -57,6 +58,30 @@ public class YouTubeService {
                     .subscriberCount(subscribers)
                     .publishedAt(publishedAt)
                     .build());
+
+            String analysis = bedrockService.analyzeVideo(new BedrockService.VideoAnalysisData(
+                    scored.getTitle(), scored.getViewCount(), scored.getLikeCount(),
+                    scored.getCommentCount(), scored.getSubscriberCount(), scored.getTotalScore(),
+                    scored.getViewsPerSubscriber(), scored.getEngagement(),
+                    scored.getViewsPerHour(), scored.getLikeRatio(), scored.getCommentRatio()
+            ));
+
+            return VideoAnalysisResponse.builder()
+                    .videoId(scored.getVideoId())
+                    .title(scored.getTitle())
+                    .viewCount(scored.getViewCount())
+                    .likeCount(scored.getLikeCount())
+                    .commentCount(scored.getCommentCount())
+                    .subscriberCount(scored.getSubscriberCount())
+                    .publishedAt(scored.getPublishedAt())
+                    .viewsPerSubscriber(scored.getViewsPerSubscriber())
+                    .engagement(scored.getEngagement())
+                    .viewsPerHour(scored.getViewsPerHour())
+                    .likeRatio(scored.getLikeRatio())
+                    .commentRatio(scored.getCommentRatio())
+                    .totalScore(scored.getTotalScore())
+                    .analysis(analysis)
+                    .build();
 
         } catch (Exception e) {
             throw new RuntimeException("YouTube API 파싱 실패: " + e.getMessage(), e);

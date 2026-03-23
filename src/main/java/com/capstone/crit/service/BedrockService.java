@@ -34,6 +34,38 @@ public class BedrockService {
         return invokeModel(prompt);
     }
 
+    public String analyzeVideo(VideoAnalysisData data) {
+        String prompt = String.format(
+            "당신은 YouTube 알고리즘 전문가입니다. 아래 영상 데이터를 분석해주세요.\n\n" +
+            "제목: %s\n" +
+            "조회수: %,d\n" +
+            "좋아요: %,d\n" +
+            "댓글: %,d\n" +
+            "구독자: %,d\n" +
+            "알고리즘 총점: %.1f / 100\n\n" +
+            "지표별 수치:\n" +
+            "- 구독자 대비 조회율(views_per_subscriber): %.3f (가중치 30%%)\n" +
+            "- 참여율(engagement): %.3f (가중치 25%%)\n" +
+            "- 시간당 조회수(views_per_hour): %.1f (가중치 20%%)\n" +
+            "- 좋아요 비율(like_ratio): %.3f (가중치 15%%)\n" +
+            "- 댓글 비율(comment_ratio): %.4f (가중치 10%%)\n\n" +
+            "다음 항목을 한국어로 분석해주세요:\n" +
+            "1. 각 지표별 평가 (강점/약점)\n" +
+            "2. 알고리즘 점수 총평\n" +
+            "3. 개선을 위한 구체적인 제안 3가지",
+            data.title(), data.viewCount(), data.likeCount(), data.commentCount(), data.subscriberCount(),
+            data.totalScore(), data.viewsPerSubscriber(), data.engagement(),
+            data.viewsPerHour(), data.likeRatio(), data.commentRatio()
+        );
+        return invokeModel(prompt);
+    }
+
+    public record VideoAnalysisData(
+        String title, long viewCount, long likeCount, long commentCount, long subscriberCount,
+        double totalScore, double viewsPerSubscriber, double engagement,
+        double viewsPerHour, double likeRatio, double commentRatio
+    ) {}
+
     private String buildTrendPrompt(String category, String keywords) {
         return String.format(
             "당신은 YouTube 콘텐츠 전략 전문가입니다.\n" +

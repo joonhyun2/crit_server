@@ -23,4 +23,7 @@ public class VideoAnalysisResponse {
 
     // 총점
     private double totalScore;
+
+    // Bedrock 분석 결과
+    private String analysis;
 }
